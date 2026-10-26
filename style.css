@@ -1,0 +1,625 @@
+/* Echoes of the Enemy - Hyper-Realistic Military Tactical UI */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@700;800;900&family=Share+Tech+Mono&display=swap');
+
+:root {
+  --bg-deep: #05070a;
+  --bg-hud: rgba(10, 14, 20, 0.88);
+  --border-tactical: #1f2b3e;
+  --border-glow: #2a4060;
+
+  --mil-green: #00e676;
+  --mil-amber: #ff9100;
+  --mil-red: #ff1744;
+  --mil-cyan: #00e5ff;
+  --mil-gold: #ffd600;
+  --mil-text: #e0e8f5;
+  --mil-muted: #657b9e;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-deep);
+  color: var(--mil-text);
+  font-family: 'Chakra Petch', sans-serif;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Tactical Top Nav */
+.tactical-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 24px;
+  background: linear-gradient(180deg, #0c1017 0%, #06090e 100%);
+  border-bottom: 1px solid var(--border-tactical);
+  z-index: 20;
+}
+
+.nav-branding {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tactical-crest {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 229, 255, 0.08);
+  border: 1px solid var(--mil-cyan);
+  padding: 3px 8px;
+  border-radius: 2px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--mil-cyan);
+  letter-spacing: 1px;
+}
+
+.game-title-text {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg, #ffffff 0%, #88bbdd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Threat Level Gauge in Nav */
+.threat-level-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 20, 28, 0.9);
+  border: 1px solid var(--border-tactical);
+  padding: 4px 14px;
+  border-radius: 4px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+}
+
+.threat-tag {
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+.threat-low { background: rgba(0, 230, 118, 0.15); color: var(--mil-green); border: 1px solid var(--mil-green); }
+.threat-medium { background: rgba(255, 145, 0, 0.18); color: var(--mil-amber); border: 1px solid var(--mil-amber); }
+.threat-high { background: rgba(255, 23, 68, 0.25); color: var(--mil-red); border: 1px solid var(--mil-red); }
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mil-btn {
+  background: rgba(20, 28, 42, 0.85);
+  border: 1px solid var(--border-tactical);
+  color: var(--mil-muted);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.mil-btn:hover {
+  background: #1b263b;
+  border-color: var(--mil-cyan);
+  color: #fff;
+}
+
+.mil-btn.active {
+  background: rgba(0, 229, 255, 0.15);
+  border-color: var(--mil-cyan);
+  color: var(--mil-cyan);
+}
+
+.mil-btn.danger-btn {
+  border-color: #662233;
+  color: #ff6688;
+}
+
+.mil-btn.danger-btn:hover {
+  background: var(--mil-red);
+  color: #fff;
+}
+
+/* Game Stage & Viewport */
+.game-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 24px;
+  position: relative;
+}
+
+.viewport-frame {
+  position: relative;
+  width: 100%;
+  max-width: 1280px;
+  aspect-ratio: 16 / 9;
+  background-color: #030508;
+  border: 2px solid #1a2436;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), inset 0 0 40px rgba(0, 0, 0, 0.6);
+}
+
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Visor Scanline Effect (Realistic HUD Overlay) */
+.visor-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 65%, rgba(2, 4, 8, 0.65) 100%);
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
+  z-index: 8;
+}
+
+/* Realistic In-Game Tactical HUD Clusters */
+.tactical-hud {
+  position: absolute;
+  inset: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.hud-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.hud-bottom-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+/* Biometric Monitor (Left Top) */
+.biometric-panel {
+  background: var(--bg-hud);
+  border: 1px solid var(--border-tactical);
+  border-left: 3px solid var(--mil-green);
+  padding: 10px 16px;
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 260px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.bio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+}
+
+.bio-title {
+  color: var(--mil-muted);
+  letter-spacing: 1px;
+}
+
+.bio-bpm {
+  color: var(--mil-green);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--mil-green);
+  animation: pulseRate 0.8s infinite;
+}
+
+/* ECG Canvas Waveform */
+#ecgCanvas {
+  width: 100%;
+  height: 22px;
+  display: block;
+}
+
+/* Segmented Health Bar */
+.seg-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seg-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--mil-muted);
+}
+
+.seg-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.seg-bar-fill {
+  height: 100%;
+  background: var(--mil-green);
+  transition: width 0.2s, background-color 0.3s;
+}
+
+.seg-bar-fill.stamina {
+  background: linear-gradient(90deg, #1976d2, var(--mil-cyan));
+}
+
+/* Center Survival Stopwatch */
+.chronometer-panel {
+  background: var(--bg-hud);
+  border: 1px solid var(--border-tactical);
+  border-top: 3px solid var(--mil-cyan);
+  padding: 8px 24px;
+  border-radius: 3px;
+  text-align: center;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.chrono-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--mil-muted);
+  letter-spacing: 2px;
+  display: block;
+}
+
+.chrono-time {
+  font-family: 'Orbitron', monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--mil-cyan);
+  letter-spacing: 2px;
+  text-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+/* Tactical Audio Radar / Decibel Noise Meter (Right Top) */
+.noise-sensor-panel {
+  background: var(--bg-hud);
+  border: 1px solid var(--border-tactical);
+  border-right: 3px solid var(--mil-amber);
+  padding: 10px 16px;
+  border-radius: 3px;
+  width: 250px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.noise-header {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--mil-muted);
+}
+
+.noise-meter-bars {
+  display: flex;
+  gap: 3px;
+  height: 14px;
+  align-items: flex-end;
+}
+
+.noise-bar-col {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 1px;
+  height: 100%;
+  transition: background-color 0.1s;
+}
+
+.noise-bar-col.active-low { background: var(--mil-green); }
+.noise-bar-col.active-med { background: var(--mil-amber); }
+.noise-bar-col.active-high { background: var(--mil-red); box-shadow: 0 0 6px var(--mil-red); }
+
+.noise-hint {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 9px;
+  color: var(--mil-muted);
+}
+
+/* Bottom Right: Tactical Equipment Holster */
+.holster-panel {
+  background: var(--bg-hud);
+  border: 1px solid var(--border-tactical);
+  padding: 10px 18px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.holster-slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slot-icon-box {
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 229, 255, 0.1);
+  border: 1px solid var(--mil-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  color: var(--mil-cyan);
+  border-radius: 2px;
+}
+
+.slot-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.slot-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--mil-muted);
+}
+
+.slot-count {
+  font-family: 'Orbitron', monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Bottom Left: Score & Operational Protocol */
+.protocol-panel {
+  background: var(--bg-hud);
+  border: 1px solid var(--border-tactical);
+  padding: 8px 16px;
+  border-radius: 3px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  backdrop-filter: blur(8px);
+  pointer-events: auto;
+}
+
+.protocol-score {
+  font-family: 'Orbitron', monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--mil-gold);
+}
+
+/* Game Over Tactical Modal */
+.tactical-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 6, 10, 0.92);
+  backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  animation: fadeIn 0.25s ease;
+}
+
+.tactical-modal.hidden {
+  display: none;
+}
+
+.modal-content-card {
+  background: #0d121a;
+  border: 2px solid var(--mil-red);
+  padding: 34px 44px;
+  border-radius: 4px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  box-shadow: 0 0 35px rgba(255, 23, 68, 0.45);
+  max-width: 480px;
+}
+
+.modal-stamp {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--mil-red);
+  letter-spacing: 3px;
+  font-weight: 700;
+}
+
+.modal-headline {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 1.5px;
+}
+
+.modal-metrics-box {
+  display: flex;
+  gap: 32px;
+  padding: 14px 24px;
+  background: #06090e;
+  border: 1px solid var(--border-tactical);
+  border-radius: 2px;
+}
+
+.metric-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.metric-name {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--mil-muted);
+}
+
+.metric-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--mil-cyan);
+}
+
+.btn-tactical-respawn {
+  background: linear-gradient(90deg, #1565c0 0%, var(--mil-cyan) 100%);
+  border: none;
+  color: #05070a;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  padding: 12px 32px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+}
+
+.btn-tactical-respawn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.8);
+}
+
+/* Bottom Tactical Controls Bar */
+.bottom-controls-bar {
+  width: 100%;
+  max-width: 1280px;
+  margin-top: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--mil-muted);
+}
+
+.controls-cluster {
+  display: flex;
+  gap: 16px;
+}
+
+.key-badge {
+  background: #141c2c;
+  border: 1px solid #2a3c58;
+  padding: 2px 6px;
+  border-radius: 2px;
+  color: var(--mil-cyan);
+  font-weight: 700;
+}
+
+/* Slide-out Examiner Drawer */
+.examiner-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 380px;
+  background: #0a0e16;
+  border-left: 1px solid var(--border-tactical);
+  box-shadow: -12px 0 35px rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(0);
+}
+
+.examiner-drawer.hidden {
+  transform: translateX(100%);
+  pointer-events: none;
+}
+
+.drawer-top {
+  padding: 16px 20px;
+  background: #05080c;
+  border-bottom: 1px solid var(--border-tactical);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-body {
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.card-block {
+  background: #0d121c;
+  border: 1px solid var(--border-tactical);
+  border-radius: 3px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card-heading {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: var(--mil-muted);
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulseRate {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}

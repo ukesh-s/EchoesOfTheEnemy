@@ -1,0 +1,16 @@
+# Godot 4
+.godot/
+*.translation
+*.import
+
+# Python & Environment
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+
+# OS / Local shims
+powershell.cmd
+Thumbs.db
+.DS_Store

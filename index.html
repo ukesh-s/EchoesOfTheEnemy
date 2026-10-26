@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Echoes of the Enemy - Tactical Survival Simulation</title>
+  <meta name="description" content="A realistic 2D tactical top-down survival simulation demonstrating intelligent FSM enemy behavior">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Tactical Command Top Bar -->
+  <header class="tactical-navbar">
+    <div class="nav-branding">
+      <div class="tactical-crest">
+        <span>TAC-SIM</span>
+        <span>//</span>
+        <span>FSM-AI</span>
+      </div>
+      <h1 class="game-title-text">ECHOES OF THE ENEMY</h1>
+    </div>
+
+    <!-- Diegetic Threat Level Indicator -->
+    <div class="threat-level-bar">
+      <span>THREAT STATUS:</span>
+      <span class="threat-tag threat-low" id="hudThreatTag">DEFCON 5 // RECON</span>
+      <span id="threatDetail" style="color:var(--mil-muted);">Area unalerted</span>
+    </div>
+
+    <div class="nav-controls">
+      <button class="mil-btn" id="btnToggleAudio">AUDIO: ON</button>
+      <button class="mil-btn" id="btnToggleNVG">NVG: OFF (N)</button>
+      <button class="mil-btn active" id="btnToggleFlashlight">LIGHT: ON (L)</button>
+      <button class="mil-btn" id="btnToggleOverlay">RADAR GIZMOS (TAB)</button>
+      <button class="mil-btn" id="btnToggleDrawer">AI TELEMETRY</button>
+      <button class="mil-btn danger-btn" id="btnQuickRestart">RESPAWN (R)</button>
+    </div>
+  </header>
+
+  <!-- Main Game Tactical Viewport -->
+  <main class="game-stage">
+    
+    <div class="viewport-frame" id="viewportFrame">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+      <div class="visor-vignette"></div>
+
+      <!-- In-Game Realistic Tactical HUD -->
+      <div class="tactical-hud">
+        
+        <!-- Top Row -->
+        <div class="hud-top-row">
+          
+          <!-- Operative Biometrics & ECG -->
+          <div class="biometric-panel">
+            <div class="bio-header">
+              <span class="bio-title">OPERATIVE VITALS</span>
+              <div class="bio-bpm">
+                <span class="pulse-dot" id="bioPulseDot"></span>
+                <span id="bioBpmVal">74 BPM</span>
+              </div>
+            </div>
+            
+            <!-- Real-time ECG Pulse Canvas -->
+            <canvas id="ecgCanvas" width="228" height="22"></canvas>
+
+            <div class="seg-bar-wrap">
+              <div class="seg-label-row">
+                <span>ARMOR INTEGRITY</span>
+                <span id="hudHpVal">100 / 100</span>
+              </div>
+              <div class="seg-bar-track">
+                <div class="seg-bar-fill" id="hudHpFill" style="width:100%;"></div>
+              </div>
+            </div>
+
+            <div class="seg-bar-wrap">
+              <div class="seg-label-row">
+                <span>STAMINA (SHIFT)</span>
+              </div>
+              <div class="seg-bar-track">
+                <div class="seg-bar-fill stamina" id="hudStaminaFill" style="width:100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chronometer & Evacuation Protocol -->
+          <div class="chronometer-panel">
+            <span class="chrono-label">MISSION ELAPSED</span>
+            <span class="chrono-time" id="hudSurvivalTimer">00:00.00</span>
+            <span id="hudEvacStatus" style="font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--mil-muted); letter-spacing:1px; display:block; margin-top:2px;">CELLS: 0/3 OR 60s</span>
+          </div>
+
+          <!-- Noise & Acoustic Emission Sensor -->
+          <div class="noise-sensor-panel">
+            <div class="noise-header">
+              <span>ACOUSTIC SIGNATURE</span>
+              <span id="noiseDbLabel">8 dB (QUIET)</span>
+            </div>
+            <div class="noise-meter-bars" id="noiseBarsContainer">
+              <div class="noise-bar-col active-low"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+              <div class="noise-bar-col"></div>
+            </div>
+            <span class="noise-hint">Hold CTRL to Crouch-Stealth Walk (8 dB)</span>
+          </div>
+
+        </div>
+
+        <!-- Bottom Row -->
+        <div class="hud-bottom-row">
+          
+          <!-- Tactical Protocol / Score -->
+          <div class="protocol-panel">
+            <span>OPERATIONAL SCORE:</span>
+            <span class="protocol-score" id="hudScore">000000</span>
+            <span style="color:var(--mil-muted);">// OBJECTIVE: ESCAPE OR SURVIVE</span>
+          </div>
+
+          <!-- Tactical Holster -->
+          <div class="holster-panel">
+            <div class="holster-slot">
+              <div class="slot-icon-box">EMP</div>
+              <div class="slot-details">
+                <span class="slot-name">ACOUSTIC DECOY [SPACE]</span>
+                <span class="slot-count" id="hudDecoyCount">3 / 3</span>
+              </div>
+            </div>
+            <div class="holster-slot">
+              <div class="slot-icon-box">DIS</div>
+              <div class="slot-details">
+                <span class="slot-name">STUN DISRUPTOR [M1]</span>
+                <span class="slot-count">READY</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Tactical Mission Failed Modal -->
+      <div class="tactical-modal hidden" id="gameOverModal">
+        <div class="modal-content-card">
+          <div class="modal-stamp">CRITICAL FAILURE // VITALS FLATLINE</div>
+          <h2 class="modal-headline">OPERATIVE TERMINATED</h2>
+          <div class="modal-metrics-box">
+            <div class="metric-entry">
+              <span class="metric-name">TIME SURVIVED</span>
+              <span class="metric-val" id="finalSurvivalTime">00:00.00</span>
+            </div>
+            <div class="metric-entry">
+              <span class="metric-name">MISSION SCORE</span>
+              <span class="metric-val" id="finalScore">000000</span>
+            </div>
+          </div>
+          <button class="btn-tactical-respawn" id="btnModalRestart">REINITIALIZE SIMULATION [R]</button>
+        </div>
+      </div>
+
+      <!-- Tactical Mission Accomplished Victory Modal -->
+      <div class="tactical-modal hidden" id="victoryModal">
+        <div class="modal-content-card" style="border-color:#00e676; box-shadow:0 0 40px rgba(0,230,118,0.5);">
+          <div class="modal-stamp" style="color:#00e676;">MISSION ACCOMPLISHED // EVAC CONFIRMED</div>
+          <h2 class="modal-headline" style="color:#00e676;">EXTRACTION SUCCESSFUL</h2>
+          <div class="modal-metrics-box">
+            <div class="metric-entry">
+              <span class="metric-name">EVACUATION TIME</span>
+              <span class="metric-val" id="victoryTime" style="color:#00e676;">00:00.00</span>
+            </div>
+            <div class="metric-entry">
+              <span class="metric-name">FINAL COMBAT SCORE</span>
+              <span class="metric-val" id="victoryScore" style="color:#ffd600;">000000</span>
+            </div>
+          </div>
+          <p style="font-family:'Share Tech Mono', monospace; font-size:12px; color:var(--mil-muted);">
+            Operative successfully evaded sentinel surveillance grid and extracted via tactical helipad.
+          </p>
+          <button class="btn-tactical-respawn" id="btnVictoryRestart" style="background:linear-gradient(90deg, #00c853 0%, #00e676 100%);">PLAY AGAIN [R]</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Controls & Key Bindings -->
+    <div class="bottom-controls-bar">
+      <div class="controls-cluster">
+        <span><span class="key-badge">W</span><span class="key-badge">A</span><span class="key-badge">S</span><span class="key-badge">D</span> Move</span>
+        <span><span class="key-badge">Ctrl</span> Stealth Crouch (8 dB)</span>
+        <span><span class="key-badge">Shift</span> Sprint</span>
+        <span><span class="key-badge">M1</span> Stun Dart</span>
+        <span><span class="key-badge">Space</span> Sound Decoy</span>
+        <span><span class="key-badge">E</span> Alarm Console</span>
+        <span><span class="key-badge">N</span> Night Vision</span>
+        <span><span class="key-badge">L</span> Light</span>
+        <span><span class="key-badge">Tab</span> Radar</span>
+      </div>
+      <div>
+        <span>Objective: Collect 3 Energy Cells or survive 60s to unlock the <strong>Extraction Zone</strong>.</span>
+      </div>
+    </div>
+  </main>
+
+  <!-- Slide-out AI Telemetry Drawer -->
+  <aside class="examiner-drawer hidden" id="telemetryDrawer">
+    <div class="drawer-top">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="threat-tag threat-medium">TELEMETRY</span>
+        <strong style="font-size:13px;">FSM Diagnostic Deck</strong>
+      </div>
+      <button class="mil-btn" id="btnCloseDrawer">&times;</button>
+    </div>
+
+    <div class="drawer-body">
+      <div class="card-block">
+        <div class="card-heading">ACTIVE SENTINEL DRONES</div>
+        <div id="drawerAgentCards" style="display:flex; flex-direction:column; gap:6px;"></div>
+      </div>
+
+      <div class="card-block">
+        <div class="card-heading">COORDINATED PACK AI (FLANKING)</div>
+        <p style="font-size:11px; color:var(--mil-muted); line-height:1.5;">
+          When an agent transitions to <code>CHASE</code>, it broadcasts an encrypted radio alert causing nearby sentinels to calculate a 90&deg; flanking vector to intercept the player.
+        </p>
+      </div>
+
+      <div class="card-block">
+        <div class="card-heading">STATE MACHINE DETERMINISM</div>
+        <p style="font-size:11px; color:var(--mil-muted); line-height:1.5;">
+          <code>PATROL &rarr; CHASE &rarr; ATTACK &rarr; SEARCH &rarr; RETURN</code>.<br>
+          Enemies utilize Euclidean perception ($\le 260\text{px}$) with raycast line-of-sight intersection.
+        </p>
+      </div>
+
+      <div class="card-block">
+        <div class="card-heading">SENTINEL DENSITY</div>
+        <div style="display:flex; gap:8px;">
+          <button class="mil-btn" id="btnSpawn1">1 Unit</button>
+          <button class="mil-btn active" id="btnSpawn2">2 Units</button>
+          <button class="mil-btn" id="btnSpawn5">5 Units</button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Scripts -->
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      const game = new window.Game();
+      game.start();
+
+      // Audio Toggle
+      const btnAudio = document.getElementById("btnToggleAudio");
+      btnAudio.addEventListener("click", () => {
+        const isMuted = window.soundSystem.toggleMute();
+        btnAudio.textContent = isMuted ? "AUDIO: OFF" : "AUDIO: ON";
+      });
+
+      // NVG Toggle
+      const btnNVG = document.getElementById("btnToggleNVG");
+      btnNVG.addEventListener("click", () => game.toggleNVG());
+
+      // Flashlight Toggle
+      const btnLight = document.getElementById("btnToggleFlashlight");
+      btnLight.addEventListener("click", () => {
+        game.flashlightOn = !game.flashlightOn;
+        btnLight.textContent = game.flashlightOn ? "LIGHT: ON (L)" : "LIGHT: OFF (L)";
+        btnLight.classList.toggle("active", game.flashlightOn);
+      });
+
+      // Radar Gizmos Toggle
+      const btnOverlay = document.getElementById("btnToggleOverlay");
+      btnOverlay.addEventListener("click", () => {
+        game.toggleTacticalOverlay();
+        btnOverlay.classList.toggle("active", game.debugDraw);
+      });
+
+      // Restart buttons
+      document.getElementById("btnQuickRestart").addEventListener("click", () => game.restartGame());
+      document.getElementById("btnModalRestart").addEventListener("click", () => game.restartGame());
+      document.getElementById("btnVictoryRestart").addEventListener("click", () => game.restartGame());
+
+      // Drawer toggle
+      const drawer = document.getElementById("telemetryDrawer");
+      const btnDrawer = document.getElementById("btnToggleDrawer");
+      const btnCloseDrawer = document.getElementById("btnCloseDrawer");
+      const toggleDrawer = () => drawer.classList.toggle("hidden");
+      btnDrawer.addEventListener("click", toggleDrawer);
+      btnCloseDrawer.addEventListener("click", toggleDrawer);
+
+      // Enemy count spawner
+      const setupSpawnerBtn = (id, count) => {
+        document.getElementById(id).addEventListener("click", (e) => {
+          document.querySelectorAll("[id^='btnSpawn']").forEach(b => b.classList.remove("active"));
+          e.target.classList.add("active");
+          game.spawnEnemies(count);
+        });
+      };
+      setupSpawnerBtn("btnSpawn1", 1);
+      setupSpawnerBtn("btnSpawn2", 2);
+      setupSpawnerBtn("btnSpawn5", 5);
+
+      // Keyboard shortcut for flashlight (L)
+      window.addEventListener("keydown", (e) => {
+        if (e.key.toLowerCase() === "l") {
+          game.flashlightOn = !game.flashlightOn;
+          btnLight.textContent = game.flashlightOn ? "LIGHT: ON (L)" : "LIGHT: OFF (L)";
+          btnLight.classList.toggle("active", game.flashlightOn);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

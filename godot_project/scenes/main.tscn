@@ -1,0 +1,55 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_gm_script"]
+[ext_resource type="PackedScene" path="res://scenes/arena.tscn" id="2_arena_scene"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="3_player_scene"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="4_enemy_scene"]
+[ext_resource type="PackedScene" path="res://scenes/hud.tscn" id="5_hud_scene"]
+[ext_resource type="AudioStream" path="res://assets/audio/alert.wav" id="6_audio_alert"]
+[ext_resource type="AudioStream" path="res://assets/audio/attack.wav" id="7_audio_attack"]
+[ext_resource type="AudioStream" path="res://assets/audio/hurt.wav" id="8_audio_hurt"]
+[ext_resource type="AudioStream" path="res://assets/audio/gameover.wav" id="9_audio_gameover"]
+
+[node name="Main" type="Node2D"]
+
+[node name="GameManager" type="Node" parent="." node_paths=PackedStringArray("player_node", "hud_node", "enemies_container")]
+script = ExtResource("1_gm_script")
+player_node = NodePath("../Player")
+hud_node = NodePath("../HUD")
+enemies_container = NodePath("../Enemies")
+
+[node name="SFXAlert" type="AudioStreamPlayer" parent="GameManager"]
+stream = ExtResource("6_audio_alert")
+
+[node name="SFXAttack" type="AudioStreamPlayer" parent="GameManager"]
+stream = ExtResource("7_audio_attack")
+
+[node name="SFXHurt" type="AudioStreamPlayer" parent="GameManager"]
+stream = ExtResource("8_audio_hurt")
+
+[node name="SFXGameOver" type="AudioStreamPlayer" parent="GameManager"]
+stream = ExtResource("9_audio_gameover")
+
+[node name="Arena" parent="." instance=ExtResource("2_arena_scene")]
+
+[node name="Player" parent="." instance=ExtResource("3_player_scene")]
+position = Vector2(220, 360)
+
+[node name="Enemies" type="Node2D" parent="."]
+
+[node name="Enemy1" parent="Enemies" instance=ExtResource("4_enemy_scene")]
+position = Vector2(980, 260)
+enemy_name = "Sentinel-Alpha"
+patrol_points = [Vector2(980, 200), Vector2(980, 520)]
+
+[node name="Enemy2" parent="Enemies" instance=ExtResource("4_enemy_scene")]
+position = Vector2(640, 540)
+enemy_name = "Sentinel-Beta"
+patrol_speed = 80.0
+chase_speed = 125.0
+patrol_points = [Vector2(520, 540), Vector2(760, 540)]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(640, 360)
+
+[node name="HUD" parent="." instance=ExtResource("5_hud_scene")]
